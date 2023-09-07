@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace BT{
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
 public class DisplayOnNodeAttribute : Attribute{
-    public DisplayOnNodeAttribute(){}
 }
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]

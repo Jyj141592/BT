@@ -2,10 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor;
 
 namespace BT.Editor{
-public class InspectorView : VisualElement
+[CustomEditor(typeof(BTNodeView))]
+public class InspectorView : UnityEditor.Editor
 {
-    
+    public void test(){
+        
+    }
 }
 }

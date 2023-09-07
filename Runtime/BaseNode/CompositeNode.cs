@@ -5,6 +5,7 @@ using UnityEngine;
 namespace BT{
 public abstract class CompositeNode : BTNode
 {
+    [HideInInspector]
     public List<BTNode> children = new List<BTNode>();
     protected int current = 0;
     public int ChildCount{
@@ -21,5 +22,10 @@ public abstract class CompositeNode : BTNode
             children[i].Abort();
         }
     }
+    public override BTNode Clone(RootNode root){
+            CompositeNode compositeNode = base.Clone(root) as CompositeNode;
+            compositeNode.children.ConvertAll(node => node.Clone(root));
+            return compositeNode;
+        }
 }
 }

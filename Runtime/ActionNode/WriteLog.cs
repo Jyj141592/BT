@@ -7,6 +7,7 @@ namespace BT{
     public class WriteLog : ActionNode
     {
         [DisplayOnNode]
+        [SerializeField]
         private string message;
         public override NodeState OnUpdate()
         {

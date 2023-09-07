@@ -5,11 +5,14 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor;
 
 namespace BT.Editor{
 public class BTNodeView : Node
 {
     public BTNode node;
+    public Port inputPort = null;
+    public Port outputPort = null;
     public void Init(BTNode node){
         this.node = node;
     }
@@ -21,7 +24,7 @@ public class BTNodeView : Node
         MainContainerStyle();
         
         if(node is not RootNode){
-            Port inputPort = CreatePort(Orientation.Vertical, Direction.Input, Port.Capacity.Single);
+            inputPort = CreatePort(Orientation.Vertical, Direction.Input, Port.Capacity.Single);
             inputPort.style.marginLeft = 8;
             mainContainer.Insert(0, inputPort);
         }
@@ -47,7 +50,7 @@ public class BTNodeView : Node
             if(node is CompositeNode){
                 capacity = Port.Capacity.Multi;
             }
-            Port outputPort = CreatePort(Orientation.Vertical, Direction.Output, capacity);
+            outputPort = CreatePort(Orientation.Vertical, Direction.Output, capacity);
             outputPort.style.marginRight = 8;
             mainContainer.Add(outputPort);
         }
@@ -58,6 +61,15 @@ public class BTNodeView : Node
         }
         //inputCon.StretchToParentWidth();
     }
+
+    public override void SetPosition(Rect newPos){
+        base.SetPosition(newPos);
+        Undo.RecordObject(node, "Set Position");
+        node.position = newPos.position;
+        //EditorUtility.SetDirty(node);
+        //AssetDatabase.SaveAssets();
+    }
+
 #region CreateNodeUI
         private void MainContainerStyle(){
             mainContainer.style.backgroundColor = new Color(80f / 255f, 80f / 255f, 80f / 255f);
@@ -72,10 +84,12 @@ public class BTNodeView : Node
             return port;
         }
         private void CreateNodeContext(){
+            SerializedObject obj = new SerializedObject(node);
             var fields = node.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach(var field in fields){
                 var attribute = field.GetCustomAttribute<DisplayOnNodeAttribute>(true);
                 if(attribute == null) continue;
+                if(!field.IsPublic && field.GetCustomAttribute<SerializeField>(true) == null) continue;
                 if(field.FieldType == typeof(int)){
                     IntegerField intField = new IntegerField(){
                         label = field.Name
@@ -84,9 +98,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(intField, field.Name);
 
-                    intField.RegisterValueChangedCallback(callback => {
-                        field.SetValue(node, callback.newValue);
-                    });
+                    intField.BindProperty(obj.FindProperty(field.Name));
+                    // intField.RegisterValueChangedCallback(callback => {
+                    //     field.SetValue(node, callback.newValue);
+                    //     AssetDatabase.SaveAssets();
+                    // });
                     mainContainer.Add(intField);
                 }
                 else if(field.FieldType == typeof(float)){
@@ -97,9 +113,13 @@ public class BTNodeView : Node
 
                     SetFieldStyle(floatField, field.Name);
 
-                    floatField.RegisterValueChangedCallback(callback => {
-                        field.SetValue(node, callback.newValue);
-                    });
+                    var prop = obj.FindProperty(field.Name);
+
+                    floatField.BindProperty(prop);
+                    // floatField.RegisterValueChangedCallback(callback => {
+                    //     field.SetValue(node, callback.newValue);
+                    //     AssetDatabase.SaveAssets();
+                    // });
                     mainContainer.Add(floatField);
                 }
                 else if(field.FieldType == typeof(bool)){
@@ -110,9 +130,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(toggle, field.Name);
 
-                    toggle.RegisterValueChangedCallback(callback => {
-                        field.SetValue(node, callback.newValue);
-                    });
+                    toggle.BindProperty(obj.FindProperty(field.Name));
+                    // toggle.RegisterValueChangedCallback(callback => {
+                    //     field.SetValue(node, callback.newValue);
+                    //     AssetDatabase.SaveAssets();
+                    // });
                     mainContainer.Add(toggle);
                 }
                 else if(field.FieldType == typeof(string)){
@@ -124,9 +146,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(textField, field.Name);
 
-                    textField.RegisterValueChangedCallback(callback => {
-                        field.SetValue(node, callback.newValue);
-                    });
+                    textField.BindProperty(obj.FindProperty(field.Name));
+                    // textField.RegisterValueChangedCallback(callback => {
+                    //     field.SetValue(node, callback.newValue);
+                    //     AssetDatabase.SaveAssets();
+                    // });
                     mainContainer.Add(textField);
                 }
                 else if(field.FieldType.IsEnum){
@@ -136,9 +160,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(enumField, field.Name);
 
-                    enumField.RegisterValueChangedCallback(callback => {
-                        field.SetValue(node, callback.newValue);
-                    });
+                    enumField.BindProperty(obj.FindProperty(field.Name));
+                    // enumField.RegisterValueChangedCallback(callback => {
+                    //     field.SetValue(node, callback.newValue);
+                    //     AssetDatabase.SaveAssets();
+                    // });
                     mainContainer.Add(enumField);
                 }
             }
@@ -151,6 +177,11 @@ public class BTNodeView : Node
             field.Insert(0, label);
         }
 #endregion
-        }
-
+    public override void OnSelected(){
+        base.OnSelected();
+        if(!Application.isPlaying)
+            Selection.objects = new Object[]{node};
+    }
+    
+}
 }

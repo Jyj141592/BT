@@ -13,6 +13,7 @@ public class BTWindow : EditorWindow
     private BTGraphView graphView = null;
     //private InspectorView inspectorView = null;
     public int instanceID;
+    private string key = "PrevTree";
 
     //[MenuItem("Window/BT")]
     public static BTWindow Open(){
@@ -27,6 +28,7 @@ public class BTWindow : EditorWindow
             BTWindow wnd = Open();
             wnd.instanceID = instanceID;
             wnd.LoadGraphView(node);
+            EditorPrefs.SetInt(wnd.key, instanceID);
             return true;
         }
         else return false;
