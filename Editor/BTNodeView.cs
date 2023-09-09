@@ -11,14 +11,16 @@ namespace BT.Editor{
 public class BTNodeView : Node
 {
     public BTNode node;
+    private InspectorView inspectorView;
     public Port inputPort = null;
     public Port outputPort = null;
     private Color defaultColor = new Color(80f / 255f, 80f / 255f, 80f / 255f);
     private Color runningColor = Color.yellow;
     private Color successColor = Color.blue;
     private Color failureColor = Color.red;
-    public void Init(BTNode node){
+    public void Init(BTNode node, InspectorView inspectorView){
         this.node = node;
+        this.inspectorView = inspectorView;
     }
     public void Draw(){
         mainContainer.Remove(titleContainer);
@@ -187,8 +189,7 @@ public class BTNodeView : Node
 #endregion
     public override void OnSelected(){
         base.OnSelected();
-        if(!Application.isPlaying)
-            Selection.objects = new Object[]{node};
+        inspectorView.OnSelection(this);
     }
     public void Update(){
         if(node.state == BTNode.NodeState.Running){

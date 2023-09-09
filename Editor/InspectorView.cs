@@ -5,11 +5,22 @@ using UnityEngine.UIElements;
 using UnityEditor;
 
 namespace BT.Editor{
-[CustomEditor(typeof(BTNodeView))]
-public class InspectorView : UnityEditor.Editor
+public class InspectorView : VisualElement
 {
-    public void test(){
-        
+    UnityEditor.Editor editor;
+    IMGUIContainer container;
+    public InspectorView(){
+        Add(new Label("Inspector"));
+    }
+    public void OnSelection(BTNodeView nodeView){
+        if(childCount >= 2){
+            RemoveAt(1);
+        }
+        UnityEngine.Object.DestroyImmediate(editor);
+
+        editor = UnityEditor.Editor.CreateEditor(nodeView.node);
+        container = new IMGUIContainer(() => editor.OnInspectorGUI());
+        Add(container);
     }
 }
 }

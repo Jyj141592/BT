@@ -16,9 +16,11 @@ public class BTGraphView : GraphView
     public RootNode root;
     public Dictionary<string, BTNodeView> nodeViews;
     private BTWindow window;
+    private InspectorView InspectorView;
     private string key = "PrevTree";
-    public BTGraphView(BTWindow wnd){
+    public BTGraphView(BTWindow wnd, InspectorView inspectorView){
         window = wnd;
+        this.InspectorView = inspectorView;
         nodeViews = new Dictionary<string, BTNodeView>();
         CreateGridBackground();
         AddStyleSheet("Assets/BT/Editor/USS/GridBackgroundStyle.uss");
@@ -61,7 +63,9 @@ public class BTGraphView : GraphView
         this.AddManipulator(new ContentDragger());
         SetupZoom(ContentZoomer.DefaultMinScale,ContentZoomer.DefaultMaxScale);
         this.AddManipulator(new SelectionDragger());
-        this.AddManipulator(new RectangleSelector());
+        var rectangle = new RectangleSelector();
+        rectangle.target = this;
+        this.AddManipulator(rectangle);
         //this.AddManipulator(CreateNodeContextMenu());
     }
     public BTNodeView CreateNodeView(Type nodeType, Vector2 position){
@@ -69,7 +73,7 @@ public class BTGraphView : GraphView
         //var node = (nodeType.) Activator.CreateInstance(nodeType);
         var node = (BTNode) ScriptableObject.CreateInstance(nodeType);
         node.guid = GUID.Generate().ToString();
-        nodeView.Init(node);
+        nodeView.Init(node, InspectorView);
         nodeView.Draw();
         nodeView.SetPosition(new Rect(position, Vector2.zero));
         AddElement(nodeView);
@@ -97,7 +101,7 @@ public class BTGraphView : GraphView
     
     private BTNodeView LoadNodeView(BTNode node){
         BTNodeView nodeView = new BTNodeView();
-        nodeView.Init(node);
+        nodeView.Init(node, InspectorView);
         nodeView.Draw();
         nodeView.SetPosition(new Rect(node.position,Vector2.zero));
         AddElement(nodeView);

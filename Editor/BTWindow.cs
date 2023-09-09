@@ -9,9 +9,9 @@ using Unity.VisualScripting;
 namespace BT.Editor{
 public class BTWindow : EditorWindow
 {
-    //private TwoPaneSplitView twoPaneSplitView;
     private BTGraphView graphView;
-    //private InspectorView inspectorView = null;
+    private TwoPaneSplitView twoPaneSplitView;
+    private InspectorView inspectorView = null;
     public int instanceID;
     private string key = "PrevTree";
 
@@ -38,25 +38,29 @@ public class BTWindow : EditorWindow
         else return false;
     }
     private void CreateGUI(){
-        // twoPaneSplitView = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Horizontal);
-        // twoPaneSplitView.StretchToParentSize();
-        // rootVisualElement.Add(twoPaneSplitView);
+        twoPaneSplitView = new TwoPaneSplitView(1, 200, TwoPaneSplitViewOrientation.Horizontal);
+        twoPaneSplitView.StretchToParentSize();
+        rootVisualElement.Add(twoPaneSplitView);
+              
+        inspectorView = new InspectorView();
+        graphView = new BTGraphView(GetWindow<BTWindow>(), inspectorView);
+        twoPaneSplitView.Add(graphView);
         
-        // inspectorView = new InspectorView();
-        // twoPaneSplitView.Add(inspectorView);
-        // //inspectorView.StretchToParentSize();
+        twoPaneSplitView.Add(inspectorView);
         
-        // graphView = new BTGraphView();
-        // twoPaneSplitView.Add(graphView);
-        // //graphView.StretchToParentSize();
-        CreateGraphView();
+        //twoPaneSplitView.fixedPaneIndex = 0;
+        //CreateGraphView();
+        
+        // VisualElement element = new VisualElement();
+        // rootVisualElement.Add(element);
+        // element.style.backgroundColor = Color.blue;
     }
-    private void CreateGraphView(){
-        BTWindow wnd = GetWindow<BTWindow>();
-        graphView = new BTGraphView(wnd);
-        graphView.StretchToParentSize();
-        rootVisualElement.Add(graphView);
-    }
+    // private void CreateGraphView(){
+    //     BTWindow wnd = GetWindow<BTWindow>();
+    //     graphView = new BTGraphView(wnd);
+    //     graphView.StretchToParentSize();
+    //     rootVisualElement.Add(graphView);
+    // }
 
     public void LoadGraphView(RootNode node){
 
