@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace BT{
@@ -10,6 +11,10 @@ namespace BT{
         public List<BTNode> nodes = new List<BTNode>();
         [HideInInspector]
         public BTNode child;
+        public override void Init(BlackBoard blackBoard){
+            base.Init(blackBoard);
+            child.Init(blackBoard);
+        }
 
         public override NodeState OnUpdate()
         {
@@ -20,7 +25,7 @@ namespace BT{
             base.Abort();
             child.Abort();
         }
-        public BTNode Clone(){
+        public RootNode Clone(){
             RootNode root = Instantiate(this);
             root.nodes = new List<BTNode>();
             root.child = child.Clone(root);

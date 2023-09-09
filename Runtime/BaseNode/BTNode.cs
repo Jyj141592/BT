@@ -11,8 +11,12 @@ public abstract class BTNode : ScriptableObject
     public enum NodeState{
         Running, Success, Failure
     }
-    private bool started = false;
-    private NodeState state = NodeState.Running;
+    public bool started{
+        get; private set;
+    } = false;
+    public NodeState state {
+        get; private set;
+    } = NodeState.Running;
     private BlackBoard blackBoard;
     [HideInInspector]
     public string guid = null;
@@ -20,16 +24,18 @@ public abstract class BTNode : ScriptableObject
     public Vector2 position;
     public virtual void Init(BlackBoard blackBoard){
         this.blackBoard = blackBoard;
+        started = false;
+        state = NodeState.Running;
     }
     public NodeState Run(){
         if(!started){
             OnStart();
         }
-        NodeState result = OnUpdate();
-        if(result != NodeState.Running){
+        state = OnUpdate();
+        if(state != NodeState.Running){
             OnExit();
         }
-        return state = result;
+        return state;
     }
     public virtual void OnStart(){
         started = true;

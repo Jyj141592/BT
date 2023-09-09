@@ -7,7 +7,11 @@ public abstract class DecoratorNode : BTNode
 {
     [HideInInspector]
     public BTNode child;
+    public override void Init(BlackBoard blackBoard){
+        base.Init(blackBoard);
+        child.Init(blackBoard);
 
+    }
     public override void Abort(){
         base.Abort();
         child.Abort();

@@ -13,6 +13,10 @@ public class BTNodeView : Node
     public BTNode node;
     public Port inputPort = null;
     public Port outputPort = null;
+    private Color defaultColor = new Color(80f / 255f, 80f / 255f, 80f / 255f);
+    private Color runningColor = Color.yellow;
+    private Color successColor = Color.blue;
+    private Color failureColor = Color.red;
     public void Init(BTNode node){
         this.node = node;
     }
@@ -36,6 +40,7 @@ public class BTNodeView : Node
         
         TextElement title = new TextElement(){
             text = BTEditorUtility.NameSpaceToClassName(node.GetType().ToString())
+            //text = node.name
         };
         title.style.height = 20;
         title.style.alignSelf = Align.Center;
@@ -72,7 +77,7 @@ public class BTNodeView : Node
 
 #region CreateNodeUI
         private void MainContainerStyle(){
-            mainContainer.style.backgroundColor = new Color(80f / 255f, 80f / 255f, 80f / 255f);
+            mainContainer.style.backgroundColor = defaultColor;
             mainContainer.style.minWidth = 90;
             mainContainer.style.maxWidth = 300;
         }
@@ -97,12 +102,12 @@ public class BTNodeView : Node
                     intField.value = (int) field.GetValue(node);
 
                     SetFieldStyle(intField, field.Name);
-
-                    intField.BindProperty(obj.FindProperty(field.Name));
-                    // intField.RegisterValueChangedCallback(callback => {
-                    //     field.SetValue(node, callback.newValue);
-                    //     AssetDatabase.SaveAssets();
-                    // });
+                    
+                    if(!Application.isPlaying)
+                        intField.BindProperty(obj.FindProperty(field.Name));
+                    else {intField.RegisterValueChangedCallback(callback => {
+                        field.SetValue(node, callback.newValue);
+                    });}
                     mainContainer.Add(intField);
                 }
                 else if(field.FieldType == typeof(float)){
@@ -112,14 +117,17 @@ public class BTNodeView : Node
                     floatField.value = (float) field.GetValue(node);
 
                     SetFieldStyle(floatField, field.Name);
-
-                    var prop = obj.FindProperty(field.Name);
-
-                    floatField.BindProperty(prop);
-                    // floatField.RegisterValueChangedCallback(callback => {
-                    //     field.SetValue(node, callback.newValue);
-                    //     AssetDatabase.SaveAssets();
-                    // });
+                    
+                    if(!Application.isPlaying){
+                        var prop = obj.FindProperty(field.Name);
+                        floatField.BindProperty(prop);
+                    }
+                    else {
+                        floatField.RegisterValueChangedCallback(callback => {
+                        field.SetValue(node, callback.newValue);
+                        //Debug.Log((float) field.GetValue(node));
+                    });
+                    }
                     mainContainer.Add(floatField);
                 }
                 else if(field.FieldType == typeof(bool)){
@@ -130,11 +138,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(toggle, field.Name);
 
-                    toggle.BindProperty(obj.FindProperty(field.Name));
-                    // toggle.RegisterValueChangedCallback(callback => {
-                    //     field.SetValue(node, callback.newValue);
-                    //     AssetDatabase.SaveAssets();
-                    // });
+                    if(!Application.isPlaying)
+                        toggle.BindProperty(obj.FindProperty(field.Name));
+                    else {toggle.RegisterValueChangedCallback(callback => {
+                        field.SetValue(node, callback.newValue);
+                    });}
                     mainContainer.Add(toggle);
                 }
                 else if(field.FieldType == typeof(string)){
@@ -146,11 +154,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(textField, field.Name);
 
-                    textField.BindProperty(obj.FindProperty(field.Name));
-                    // textField.RegisterValueChangedCallback(callback => {
-                    //     field.SetValue(node, callback.newValue);
-                    //     AssetDatabase.SaveAssets();
-                    // });
+                    if(!Application.isPlaying)
+                        textField.BindProperty(obj.FindProperty(field.Name));
+                    else {textField.RegisterValueChangedCallback(callback => {
+                        field.SetValue(node, callback.newValue);
+                    });}
                     mainContainer.Add(textField);
                 }
                 else if(field.FieldType.IsEnum){
@@ -160,11 +168,11 @@ public class BTNodeView : Node
 
                     SetFieldStyle(enumField, field.Name);
 
-                    enumField.BindProperty(obj.FindProperty(field.Name));
-                    // enumField.RegisterValueChangedCallback(callback => {
-                    //     field.SetValue(node, callback.newValue);
-                    //     AssetDatabase.SaveAssets();
-                    // });
+                    if(!Application.isPlaying)
+                        enumField.BindProperty(obj.FindProperty(field.Name));
+                    else {enumField.RegisterValueChangedCallback(callback => {
+                        field.SetValue(node, callback.newValue);
+                    });}
                     mainContainer.Add(enumField);
                 }
             }
@@ -182,6 +190,20 @@ public class BTNodeView : Node
         if(!Application.isPlaying)
             Selection.objects = new Object[]{node};
     }
-    
+    public void Update(){
+        if(node.state == BTNode.NodeState.Running){
+            if(node.started) mainContainer.style.backgroundColor = runningColor;
+            else mainContainer.style.backgroundColor = defaultColor;
+        }
+        else if(node.state == BTNode.NodeState.Success){
+            mainContainer.style.backgroundColor = successColor;
+        }
+        else mainContainer.style.backgroundColor = failureColor;
+    }
+    public void SortChildren(){
+        if(node is CompositeNode composite){
+            composite.children.Sort((left, right) => left.position.x < right.position.x ? -1 : 1);
+        }
+    }
 }
 }

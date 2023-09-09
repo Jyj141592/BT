@@ -31,10 +31,21 @@ public class BTGraphView : GraphView
             LoadGraphView(root , false);
             AssetDatabase.SaveAssets();
         };
-
-        int instanceID = EditorPrefs.GetInt(key);
-        UnityEngine.Object target = EditorUtility.InstanceIDToObject(instanceID);
-        if(target != null) LoadGraphView((RootNode) target);
+        if(Application.isPlaying){
+            if(Selection.activeGameObject){
+                AIController controller = Selection.activeGameObject.GetComponent<AIController>();
+                if(controller) {
+                    
+                    LoadGraphView(controller.rootNode);
+                    return;
+                }
+            }
+        }
+        string path = EditorPrefs.GetString(key);
+        //Debug.Log(instanceID);
+        RootNode target = AssetDatabase.LoadAssetAtPath<RootNode>(path);
+        if(target != null) LoadGraphView(target);
+        
     }
 
     private void CreateGridBackground(){
@@ -65,9 +76,11 @@ public class BTGraphView : GraphView
         nodeViews.Add(node.guid, nodeView);
         Undo.RecordObject(root, "Create Node");
         root.nodes.Add(node);
-        AssetDatabase.AddObjectToAsset(node, rootNode.node);
-        Undo.RegisterCreatedObjectUndo(node,"Create Node");
-        AssetDatabase.SaveAssets();
+        if(!Application.isPlaying){
+            AssetDatabase.AddObjectToAsset(node, rootNode.node);
+            Undo.RegisterCreatedObjectUndo(node,"Create Node");
+            AssetDatabase.SaveAssets();
+        }
         return nodeView;
     }
 
@@ -135,8 +148,10 @@ public class BTGraphView : GraphView
                         root.nodes.Remove(nodeView.node);
                         DisconnectAll(nodeView);
                         //AssetDatabase.RemoveObjectFromAsset(nodeView.node);
-                        Undo.DestroyObjectImmediate(nodeView.node);
-                        AssetDatabase.SaveAssets();
+                        if(!Application.isPlaying){
+                            Undo.DestroyObjectImmediate(nodeView.node);
+                            AssetDatabase.SaveAssets();
+                        }
                     }
                 }
                 
@@ -154,6 +169,9 @@ public class BTGraphView : GraphView
                     BTNodeView parent = edge.output.node as BTNodeView;
                     BTNodeView child = edge.input.node as BTNodeView;
                     ConnectNodes(parent.node, child.node);
+                    foreach(KeyValuePair<string, BTNodeView> pair in nodeViews){
+                        pair.Value.SortChildren();
+                    }
                 }
             }
             if(changes.elementsToRemove != null){
@@ -163,6 +181,11 @@ public class BTGraphView : GraphView
                         BTNodeView child = edge.input.node as BTNodeView;
                         RemoveConnection(parent.node, child.node);
                     }
+                }
+            }
+            if(changes.movedElements != null){
+                foreach(KeyValuePair<string, BTNodeView> pair in nodeViews){
+                    pair.Value.SortChildren();
                 }
             }
             return changes;
@@ -183,12 +206,16 @@ public class BTGraphView : GraphView
                 LoadNodeView(node);
             }
             if(root.child != null){
-                CreateEdge(rootNode, nodeViews[root.child.guid]);
+                Edge edge = rootNode.outputPort.ConnectTo(nodeViews[root.child.guid].inputPort);
+                AddElement(edge);
+                //CreateEdge(rootNode, nodeViews[root.child.guid]);
             }
             foreach(BTNode node in root.nodes){
                 var children = GetChildrenNode(node);
                 foreach(BTNode child in children){
-                    CreateEdge(nodeViews[node.guid],nodeViews[child.guid]);
+                    Edge edge = nodeViews[node.guid].outputPort.ConnectTo(nodeViews[child.guid].inputPort);
+                    AddElement(edge);
+                    //CreateEdge(nodeViews[node.guid],nodeViews[child.guid]);
                 }
             }
         //}
@@ -280,6 +307,12 @@ public class BTGraphView : GraphView
                 RemoveConnection(parent.node, child.node);
             }
             DeleteElements(nodeView.outputPort.connections);
+        }
+    }
+
+    public void UpdateStates(){
+        foreach(KeyValuePair<string, BTNodeView> pair in nodeViews){
+            pair.Value.Update();
         }
     }
 }

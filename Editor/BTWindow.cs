@@ -10,7 +10,7 @@ namespace BT.Editor{
 public class BTWindow : EditorWindow
 {
     //private TwoPaneSplitView twoPaneSplitView;
-    private BTGraphView graphView = null;
+    private BTGraphView graphView;
     //private InspectorView inspectorView = null;
     public int instanceID;
     private string key = "PrevTree";
@@ -28,7 +28,11 @@ public class BTWindow : EditorWindow
             BTWindow wnd = Open();
             wnd.instanceID = instanceID;
             wnd.LoadGraphView(node);
-            EditorPrefs.SetInt(wnd.key, instanceID);
+            //EditorPrefs.SetInt(wnd.key, instanceID);
+            string path = AssetDatabase.GetAssetPath(node);
+            EditorPrefs.SetString(wnd.key, path);
+            //Debug.Log(path);
+            
             return true;
         }
         else return false;
@@ -45,9 +49,7 @@ public class BTWindow : EditorWindow
         // graphView = new BTGraphView();
         // twoPaneSplitView.Add(graphView);
         // //graphView.StretchToParentSize();
-
         CreateGraphView();
-
     }
     private void CreateGraphView(){
         BTWindow wnd = GetWindow<BTWindow>();
@@ -57,12 +59,44 @@ public class BTWindow : EditorWindow
     }
 
     public void LoadGraphView(RootNode node){
-        graphView.LoadGraphView(node);
+
+        graphView?.LoadGraphView(node);
     }
 
-    private void OnSelectionChange() {
+    private void OnEnable() {
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+    }
+    private void OnDisable() {
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+    }
+    private void OnPlayModeStateChanged(PlayModeStateChange chg){
+        switch(chg){
+            case PlayModeStateChange.EnteredEditMode:
+                //Debug.Log("editor");
+                string path = EditorPrefs.GetString(key);
+                RootNode target = AssetDatabase.LoadAssetAtPath<RootNode>(path);
+                if(target != null) LoadGraphView(target);
+                break;
+        }
+    }
+    public void OnSelectionChange() {
         //Debug.Log("deleted!");
-        if(EditorUtility.InstanceIDToObject(instanceID) == null) graphView.ClearGraphView();      
+        if(Application.isPlaying){
+            if(Selection.activeGameObject){
+                AIController controller = Selection.activeGameObject.GetComponent<AIController>();
+                if(controller) {
+                    
+                    graphView?.LoadGraphView(controller.rootNode);
+                    //Debug.Log("changed!");
+                }
+            }
+        }
+        if(EditorUtility.InstanceIDToObject(instanceID) == null) graphView.ClearGraphView();
+        
+    }
+    private void OnInspectorUpdate() {
+       if(Application.isPlaying) graphView?.UpdateStates();
     }
 }
 }
