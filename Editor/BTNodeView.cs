@@ -42,11 +42,9 @@ public class BTNodeView : Node
         
         TextElement title = new TextElement(){
             text = BTEditorUtility.NameSpaceToClassName(node.GetType().ToString())
-            //text = node.name
         };
         title.style.height = 20;
         title.style.alignSelf = Align.Center;
-        //title.style.paddingTop = 5;
         title.style.fontSize = 15;
         mainContainer.Add(title);
         
@@ -66,15 +64,12 @@ public class BTNodeView : Node
             element.style.height = 20;
             mainContainer.Add(element);
         }
-        //inputCon.StretchToParentWidth();
     }
 
     public override void SetPosition(Rect newPos){
         base.SetPosition(newPos);
         Undo.RecordObject(node, "Set Position");
         node.position = newPos.position;
-        //EditorUtility.SetDirty(node);
-        //AssetDatabase.SaveAssets();
     }
 
 #region CreateNodeUI
@@ -127,7 +122,6 @@ public class BTNodeView : Node
                     else {
                         floatField.RegisterValueChangedCallback(callback => {
                         field.SetValue(node, callback.newValue);
-                        //Debug.Log((float) field.GetValue(node));
                     });
                     }
                     mainContainer.Add(floatField);

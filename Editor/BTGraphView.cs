@@ -25,7 +25,6 @@ public class BTGraphView : GraphView
         CreateGridBackground();
         AddStyleSheet("Assets/BT/Editor/USS/GridBackgroundStyle.uss");
         AddManipulators();
-        //rootNode = CreateNodeView(typeof(RootNode), new Vector2(0, 0));
         SetElementsDeletion();
         SetOnGraphViewChanged();
 
@@ -44,7 +43,6 @@ public class BTGraphView : GraphView
             }
         }
         string path = EditorPrefs.GetString(key);
-        //Debug.Log(instanceID);
         RootNode target = AssetDatabase.LoadAssetAtPath<RootNode>(path);
         if(target != null) LoadGraphView(target);
         
@@ -66,11 +64,9 @@ public class BTGraphView : GraphView
         var rectangle = new RectangleSelector();
         rectangle.target = this;
         this.AddManipulator(rectangle);
-        //this.AddManipulator(CreateNodeContextMenu());
     }
     public BTNodeView CreateNodeView(Type nodeType, Vector2 position){
         BTNodeView nodeView = new BTNodeView();
-        //var node = (nodeType.) Activator.CreateInstance(nodeType);
         var node = (BTNode) ScriptableObject.CreateInstance(nodeType);
         node.guid = GUID.Generate().ToString();
         nodeView.Init(node, InspectorView);
@@ -112,8 +108,6 @@ public class BTGraphView : GraphView
     public override void BuildContextualMenu(ContextualMenuPopulateEvent evt) {
         //base.BuildContextualMenu(evt);
         Vector2 nodePosition = this.ChangeCoordinatesTo(contentViewContainer, evt.localMousePosition);
-        //evt.menu.AppendAction("CompositeNode/", callback => {Debug.Log("oong!");});
-        // CreateMenu for Composite Nodes
         var types = TypeCache.GetTypesDerivedFrom<CompositeNode>();
         foreach(Type type in types){
             var attribute = type.GetCustomAttribute<CreateNodeMenuAttribute>();
@@ -141,6 +135,7 @@ public class BTGraphView : GraphView
             evt.menu.AppendAction($"ActionNode/{path}", callback => CreateNodeView(type, nodePosition));
         }
     }
+
     private void SetElementsDeletion(){
         deleteSelection = (operationName, askUser) => {
             List<GraphElement> deleteElements = new List<GraphElement>();
@@ -151,7 +146,6 @@ public class BTGraphView : GraphView
                         Undo.RecordObject(root, "Delete Node");
                         root.nodes.Remove(nodeView.node);
                         DisconnectAll(nodeView);
-                        //AssetDatabase.RemoveObjectFromAsset(nodeView.node);
                         if(!Application.isPlaying){
                             Undo.DestroyObjectImmediate(nodeView.node);
                             AssetDatabase.SaveAssets();
@@ -257,7 +251,6 @@ public class BTGraphView : GraphView
             decoratorNode.child = child;
         }
         //new SerializedObject(parent).ApplyModifiedProperties();
-        //AssetDatabase.SaveAssets();
     }
 
     private void RemoveConnection(BTNode parent, BTNode child){
@@ -275,7 +268,6 @@ public class BTGraphView : GraphView
             decoratorNode.child = null;
         }
         //new SerializedObject(parent).ApplyModifiedProperties();
-        //AssetDatabase.SaveAssets();
     }
     
     private List<BTNode> GetChildrenNode(BTNode node){

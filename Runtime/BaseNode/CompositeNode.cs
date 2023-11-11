@@ -32,7 +32,6 @@ public abstract class CompositeNode : BTNode
     }
     public override BTNode Clone(RootNode root){
             CompositeNode compositeNode = base.Clone(root) as CompositeNode;
-            //compositeNode.children.ConvertAll(node => node.Clone(root));
             compositeNode.children = new List<BTNode>();
             for(int i = 0; i < ChildCount; i++){
                 compositeNode.children.Add(children[i].Clone(root));

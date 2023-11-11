@@ -15,7 +15,6 @@ public class BTWindow : EditorWindow
     public int instanceID;
     private string key = "PrevTree";
 
-    //[MenuItem("Window/BT")]
     public static BTWindow Open(){
         BTWindow wnd = GetWindow<BTWindow>();
         wnd.titleContent = new GUIContent("BTEditor");
@@ -28,10 +27,8 @@ public class BTWindow : EditorWindow
             BTWindow wnd = Open();
             wnd.instanceID = instanceID;
             wnd.LoadGraphView(node);
-            //EditorPrefs.SetInt(wnd.key, instanceID);
             string path = AssetDatabase.GetAssetPath(node);
             EditorPrefs.SetString(wnd.key, path);
-            //Debug.Log(path);
             
             return true;
         }
@@ -47,21 +44,7 @@ public class BTWindow : EditorWindow
         twoPaneSplitView.Add(graphView);
         
         twoPaneSplitView.Add(inspectorView);
-        
-        //twoPaneSplitView.fixedPaneIndex = 0;
-        //CreateGraphView();
-        
-        // VisualElement element = new VisualElement();
-        // rootVisualElement.Add(element);
-        // element.style.backgroundColor = Color.blue;
     }
-    // private void CreateGraphView(){
-    //     BTWindow wnd = GetWindow<BTWindow>();
-    //     graphView = new BTGraphView(wnd);
-    //     graphView.StretchToParentSize();
-    //     rootVisualElement.Add(graphView);
-    // }
-
     public void LoadGraphView(RootNode node){
 
         graphView?.LoadGraphView(node);
@@ -77,7 +60,6 @@ public class BTWindow : EditorWindow
     private void OnPlayModeStateChanged(PlayModeStateChange chg){
         switch(chg){
             case PlayModeStateChange.EnteredEditMode:
-                //Debug.Log("editor");
                 string path = EditorPrefs.GetString(key);
                 RootNode target = AssetDatabase.LoadAssetAtPath<RootNode>(path);
                 if(target != null) LoadGraphView(target);
@@ -85,14 +67,11 @@ public class BTWindow : EditorWindow
         }
     }
     public void OnSelectionChange() {
-        //Debug.Log("deleted!");
         if(Application.isPlaying){
             if(Selection.activeGameObject){
                 AIController controller = Selection.activeGameObject.GetComponent<AIController>();
                 if(controller) {
-                    
                     graphView?.LoadGraphView(controller.rootNode);
-                    //Debug.Log("changed!");
                 }
             }
         }
